@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Router Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 18h18M6 18V11M10 18V6M14 18v-9M18 18V3' stroke='%232a78d6' stroke-width='2.4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-view" class="login-wrap" hidden>
+  <form id="login-form" class="card login" autocomplete="on">
+    <h1>Log in to your router</h1>
+    <p>Use the router's admin login, usually printed on the sticker under the Huawei box. Your password stays on this computer.</p>
+    <label class="field">Router address
+      <input id="login-host" name="host" value="192.168.100.1" required>
+    </label>
+    <label class="field">Username
+      <input id="login-user" name="username" autocomplete="username" required>
+    </label>
+    <label class="field">Password
+      <input id="login-pass" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <label class="check"><input id="login-remember" type="checkbox"> Remember me (needed for tracking to restart on its own)</label>
+    <button class="btn primary" type="submit" id="login-btn">Log in</button>
+    <div class="msg err" id="login-msg" role="alert"></div>
+    <p class="fine">Huawei routers lock logins for a minute after three wrong passwords. Logging in here may sign you out of the router's own web page.</p>
+  </form>
+</div>
+
+<!-- Dashboard -->
+<div id="dash-view" class="wrap" hidden>
+  <header class="topbar">
+    <div>
+      <h1>Router dashboard</h1>
+      <div class="sub"><span class="dot" id="conn-dot"></span><span id="conn-text">Connecting…</span></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="theme-btn" type="button" aria-label="Toggle dark mode">Theme</button>
+    <button class="btn" id="logout-btn" type="button">Log out</button>
+  </header>
+
+  <div id="banners"></div>
+
+  <div class="grid">
+    <!-- Cycle hero -->
+    <section class="card span-7" aria-labelledby="cycle-h">
+      <div class="card-head">
+        <h2 id="cycle-h">Fair-usage cap this cycle</h2>
+        <span class="note" id="cycle-dates"></span>
+      </div>
+      <div class="hero-row">
+        <div class="hero" id="used-hero">–</div>
+        <div class="hero-of" id="used-of"></div>
+      </div>
+      <div class="meter" id="meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-label="Share of fair-usage cap used">
+        <div class="meter-fill" id="meter-fill" style="width:0"></div>
+        <div class="meter-pace" id="meter-pace" title="Where you'd be at an even daily pace"></div>
+      </div>
+      <div class="meter-scale"><span>0</span><span id="meter-pace-label"></span><span id="meter-cap"></span></div>
+      <div class="status-line" id="status-line"></div>
+    </section>
+
+    <section class="card span-5" aria-label="Key numbers">
+      <div class="tiles">
+        <div class="tile"><div class="label">Used today</div><div class="value" id="t-today">–</div><div class="hint" id="t-today-hint"></div></div>
+        <div class="tile"><div class="label">Safe daily budget</div><div class="value" id="t-budget">–</div><div class="hint">to finish under the cap</div></div>
+        <div class="tile"><div class="label">Average per day</div><div class="value" id="t-avg">–</div><div class="hint" id="t-avg-hint"></div></div>
+        <div class="tile"><div class="label">Days left</div><div class="value" id="t-days">–</div><div class="hint" id="t-days-hint"></div></div>
+      </div>
+    </section>
+
+    <!-- Live -->
+    <section class="card span-12" aria-labelledby="live-h">
+      <div class="card-head">
+        <h2 id="live-h">Live speed</h2>
+        <span class="note">last 5 minutes</span>
+        <span class="spacer"></span>
+        <div class="legend">
+          <span class="key"><span class="linekey" style="background:var(--down)"></span>Download</span>
+          <span class="key"><span class="linekey" style="background:var(--up)"></span>Upload</span>
+        </div>
+      </div>
+      <div class="live-now">
+        <div><div class="k"><span class="linekey" style="background:var(--down)"></span>Download</div><div class="v" id="live-down">–</div></div>
+        <div><div class="k"><span class="linekey" style="background:var(--up)"></span>Upload</div><div class="v" id="live-up">–</div></div>
+      </div>
+      <div class="chart" id="live-chart"></div>
+    </section>
+
+    <!-- Daily -->
+    <section class="card span-12" aria-labelledby="daily-h">
+      <div class="card-head">
+        <h2 id="daily-h">Data used per day</h2>
+        <span class="note" id="daily-note"></span>
+        <span class="spacer"></span>
+        <div class="legend">
+          <span class="key"><span class="swatch" style="background:var(--down)"></span>Download</span>
+          <span class="key"><span class="swatch" style="background:var(--up)"></span>Upload</span>
+          <span class="key"><span class="linekey" style="background:var(--ink-2)"></span>Even pace</span>
+        </div>
+      </div>
+      <div class="chart" id="daily-chart"></div>
+      <details class="table-view">
+        <summary>Show as table</summary>
+        <div class="table-scroll"><table id="daily-table"></table></div>
+      </details>
+    </section>
+
+    <!-- Heatmap -->
+    <section class="card span-7" aria-labelledby="heat-h">
+      <div class="card-head">
+        <h2 id="heat-h">When data gets used</h2>
+        <span class="note">last 14 days, by hour</span>
+      </div>
+      <div class="chart" id="heat-chart"></div>
+      <div class="heat-legend" id="heat-legend"></div>
+    </section>
+
+    <!-- Devices -->
+    <section class="card span-5" aria-labelledby="dev-h">
+      <div class="card-head">
+        <h2 id="dev-h">Devices</h2>
+        <span class="note" id="dev-count"></span>
+        <span class="spacer"></span>
+        <input class="search" id="dev-search" type="search" placeholder="Filter" aria-label="Filter devices">
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Name</th><th>IP</th><th>Link</th><th>Status</th></tr></thead>
+          <tbody id="dev-body"></tbody>
+        </table>
+      </div>
+      <p class="note" style="color:var(--muted);font-size:12px;margin:10px 0 0">Unknown device you don't recognise? Change your Wi-Fi password. This router doesn't report data use per device.</p>
+    </section>
+
+    <!-- Settings -->
+    <section class="card span-12" aria-labelledby="set-h">
+      <div class="card-head"><h2 id="set-h">Settings</h2></div>
+      <form id="settings-form" class="form-row">
+        <label class="field" style="width:140px">Monthly cap (GB)
+          <input id="set-cap" type="number" min="1" step="1">
+        </label>
+        <label class="field" style="width:160px">Bundle renews on day
+          <input id="set-reset" type="number" min="1" max="31" step="1">
+        </label>
+        <button class="btn" type="submit">Save</button>
+      </form>
+      <form id="calib-form" class="form-row">
+        <label class="field" style="width:260px">Safaricom says I've used (GB) this cycle
+          <input id="calib-gb" type="number" min="0" step="0.1" placeholder="e.g. 640">
+        </label>
+        <button class="btn" type="submit">Match it</button>
+      </form>
+      <div class="msg" id="settings-msg" role="status"></div>
+      <p style="color:var(--muted);font-size:12px;margin:4px 0 0">Tracking only counts from when this app first ran. Look up your usage so far in the My Safaricom app (or ask Safaricom), enter it above, and the dashboard will count on from there.</p>
+    </section>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip" role="tooltip"></div>
+<script src="app.js"></script>
+</body>
+</html>
