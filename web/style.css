@@ -235,7 +235,7 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .login h1 { font-size: 22px; margin: 0 0 4px; }
 .login p { color: var(--ink-2); font-size: 14px; margin: 0 0 18px; }
 .login .field { margin-bottom: 12px; }
-.login .check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink-2); margin: 4px 0 16px; }
+.login .check { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--ink-2); margin: 0 0 12px; }
 .login .btn { width: 100%; padding: 10px; }
 .login .fine { color: var(--muted); font-size: 12px; margin-top: 14px; }
 

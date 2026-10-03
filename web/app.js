@@ -512,6 +512,10 @@ $("calib-form").addEventListener("submit", async (e) => {
 
 $("dev-search").addEventListener("input", renderDevices);
 
+$("login-show").addEventListener("change", (e) => {
+  $("login-pass").type = e.target.checked ? "text" : "password";
+});
+
 function applyTheme(t) {
   if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme;
 }

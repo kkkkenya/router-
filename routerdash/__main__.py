@@ -82,7 +82,13 @@ def cmd_probe(args):
     cfg = config_mod.load(args.config)
     host = input(f"Router address [{cfg['router_host']}]: ").strip() or cfg["router_host"]
     user = input(f"Router username [{cfg['username']}]: ").strip() or cfg["username"]
-    pw = getpass.getpass("Router password (not shown): ")
+    if args.hide_password:
+        pw = getpass.getpass("Router password (nothing appears as you type; that's normal): ")
+    else:
+        pw = input("Router password (shown as you type): ")
+    pw = pw.strip("\r\n")
+    if not pw:
+        sys.exit("No password entered.")
     router = HuaweiONT(host, user, pw, cfg.get("password_mode", "auto"))
     try:
         router.login()
@@ -134,6 +140,7 @@ def main():
     ap.add_argument("--no-browser", action="store_true")
     pr = sub.add_parser("probe", help="find the traffic counters on your router")
     pr.add_argument("--wait", type=int, default=20)
+    pr.add_argument("--hide-password", action="store_true", help="don't show the password while typing")
     args = ap.parse_args()
     if args.cmd == "probe":
         cmd_probe(args)
