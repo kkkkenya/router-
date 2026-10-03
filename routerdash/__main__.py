@@ -130,6 +130,21 @@ def cmd_probe(args):
         print("upload look swapped or 10x off, paste this output to Claude.")
 
 
+def cmd_diagnose(args):
+    from .diagnose import run_diagnose
+
+    cfg = config_mod.load(args.config)
+    host = input(f"Router address [{cfg['router_host']}]: ").strip() or cfg["router_host"]
+    out = os.path.abspath("login-debug.txt")
+    try:
+        run_diagnose(host, out)
+    except RouterError as e:
+        sys.exit(str(e))
+    print(f"\nSaved to {out}")
+    print("Open it in Notepad, copy everything, and paste it to Claude.")
+    print("It holds the router's login code only, no passwords.")
+
+
 def main():
     ap = argparse.ArgumentParser(prog="routerdash", description="Bandwidth dashboard for Huawei fibre routers")
     ap.add_argument("--config", default=os.path.join(ROOT, "config.json"))
@@ -141,7 +156,10 @@ def main():
     pr = sub.add_parser("probe", help="find the traffic counters on your router")
     pr.add_argument("--wait", type=int, default=20)
     pr.add_argument("--hide-password", action="store_true", help="don't show the password while typing")
+    sub.add_parser("diagnose", help="save the router's login code for troubleshooting (doesn't log in)")
     args = ap.parse_args()
+    if args.cmd == "diagnose":
+        return cmd_diagnose(args)
     if args.cmd == "probe":
         cmd_probe(args)
     else:
